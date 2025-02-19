@@ -1,0 +1,50 @@
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git remote add origin https://github.com/robertv-inform/aiagenttest1.git
+error: remote origin already exists.
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin master
+error: src refspec master does not match any
+error: failed to push some refs to 'https://github.com/robertv-inform/aiagenttest1.git'
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin main
+remote: Invalid username or password.
+fatal: Authentication failed for 'https://github.com/robertv-inform/aiagenttest1.git/'
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git config --global credential.helper store
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git config --global credential.helper cache
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin master
+error: src refspec master does not match any
+error: failed to push some refs to 'https://github.com/robertv-inform/aiagenttest1.git'
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin main
+fatal: expired_token: This 'device_code' has expired. [https://docs.github.com/developers/apps/authorizing-oauth-apps#error-codes-for-the-device-flow]
+Username for 'https://github.com': robertvinformmail
+Password for 'https://robertvinformmail@github.com':
+remote: Support for password authentication was removed on August 13, 2021.
+remote: Please see https://docs.github.com/get-started/getting-started-with-git/about-remote-repositories#cloning-with-https-urls for information on currently recommended modes of authentication.
+fatal: Authentication failed for 'https://github.com/robertv-inform/aiagenttest1.git/'
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin main
+info: please complete authentication in your browser...
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 8.79 KiB | 2.20 MiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/robertv-inform/aiagenttest1.git
+   e5ef621..7014f50  main -> main
+branch 'main' set up to track 'origin/main'.
+
+E:\SJ\ics_work\Dec-2024\github_repo\AI-Agents_v0.2\aiagenttest1>git push -u origin main
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 1.36 KiB | 279.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/robertv-inform/aiagenttest1.git
+   7014f50..3374a5e  main -> main
+branch 'main' set up to track 'origin/main'.

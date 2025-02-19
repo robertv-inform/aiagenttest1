@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- UI references: page3a.jpg, page3b.jpg, page3c.jpg -->
+</head>
+<body>
+<div class="container mt-4">
+    <h2>{{ event.Title if event.Title else event.EventID }}</h2>
+    <div class="mb-3">
+        <h4>Page 3a</h4>
+        <p>{{ section_a }}</p>
+    </div>
+    <div class="mb-3">
+        <h4>Page 3b</h4>
+        <p>{{ section_b }}</p>
+    </div>
+    <div class="mb-3">
+        <h4>Page 3c</h4>
+        <p>{{ section_c }}</p>
+    </div>
+
+    <a href="{{ url_for('quotation_ai', event_id=event.EventID) }}" class="btn btn-primary">Quotation AI</a>
+</div>
+</body>
+</html>

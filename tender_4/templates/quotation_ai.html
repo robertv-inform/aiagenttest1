@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quotation AI</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- UI references: page4a.jpg, page4b.jpg, page4c.jpg -->
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Quotation AI for Event {{ event_id }}</h2>
+    <div class="mb-3">
+        <h4>Page 4a</h4>
+        <p>Intro or instructions for supplier quotations analysis.</p>
+    </div>
+    <div class="mb-3">
+        <h4>Page 4b</h4>
+        <p>Additional AI insights or disclaimers about quotations.</p>
+    </div>
+    <div class="mb-3">
+        <h4>Page 4c</h4>
+        <p>Possible line-item breakdown or final checks before comparing quotes.</p>
+    </div>
+
+    <a href="{{ url_for('compare_quotes', event_id=event_id) }}" class="btn btn-success">Compare Quotes</a>
+</div>
+</body>
+</html>

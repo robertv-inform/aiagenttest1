@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Award Result</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Bid Awarded</h2>
+    <p>The following supplier(s) have been awarded:</p>
+    <ul>
+    {% for supplier in awarded_suppliers %}
+        <li>
+            {{ supplier }}
+            (Percentage = {{ percentages['percentage_' + supplier] if ('percentage_' + supplier) in percentages else 'N/A' }})
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+</body>
+</html>
