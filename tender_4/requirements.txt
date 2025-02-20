@@ -1,7 +1,0 @@
-Flask
-transformers
-sentence-transformers
-torch
-faiss-cpu
-numpy
-# openai  # Uncomment if you use the real OpenAI integration.
