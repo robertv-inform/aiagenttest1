@@ -1,0 +1,205 @@
+import os
+import csv
+import json
+import numpy as np
+import faiss
+from flask import Flask, render_template, request, redirect, url_for
+from sentence_transformers import SentenceTransformer
+
+# Uncomment to enable GPT-4 API calls
+# import openai
+# openai.api_key = "YOUR_OPENAI_API_KEY"
+
+# --------------------------------------------------------------------
+# Check and Download AllMiniLM-L6-v2 Model
+# --------------------------------------------------------------------
+MODEL_PATH = "model_repo/all-MiniLM-L6-v2"
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+
+def download_model_if_needed():
+    if not os.path.exists(MODEL_PATH):
+        print("🔹 Model not found. Downloading AllMiniLM-L6-v2...")
+        model = SentenceTransformer(MODEL_NAME)
+        model.save(MODEL_PATH)
+        print("✅ Model downloaded and saved at:", MODEL_PATH)
+    else:
+        print("✅ Model already present at:", MODEL_PATH)
+
+download_model_if_needed()
+
+embedding_model = SentenceTransformer(MODEL_PATH)
+EMBEDDING_DIM = embedding_model.get_sentence_embedding_dimension()
+
+app = Flask(__name__)
+
+# --------------------------------------------------------------------
+# GLOBALS for events
+# --------------------------------------------------------------------
+EVENT_INDEX = None
+EVENT_EMBEDDINGS = None
+EVENTS_DATA = []
+
+# --------------------------------------------------------------------
+# Build FAISS index from CSV
+# --------------------------------------------------------------------
+def build_faiss_index_for_events(csv_path):
+    global EVENT_INDEX, EVENT_EMBEDDINGS, EVENTS_DATA
+    events = []
+    try:
+        with open(csv_path, newline='', encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                events.append(row)
+    except Exception as e:
+        print("Error loading events CSV:", e)
+        return
+
+    if not events:
+        print("No events found in CSV.")
+        return
+
+    texts = [" ".join([row.get("Title",""), row.get("Description",""), row.get("Commodity","")]) for row in events]
+    embeddings = embedding_model.encode(texts, convert_to_numpy=True)
+
+    index = faiss.IndexFlatL2(EMBEDDING_DIM)
+    index.add(embeddings)
+
+    EVENT_INDEX = index
+    EVENT_EMBEDDINGS = embeddings
+    EVENTS_DATA = events
+
+def faiss_search_events(commodity, top_k=50):
+    if EVENT_INDEX is None:
+        print("FAISS index not built.")
+        return []
+    commodity_emb = embedding_model.encode([commodity], convert_to_numpy=True)
+    distances, indices = EVENT_INDEX.search(commodity_emb, top_k)
+    return [EVENTS_DATA[idx] for idx in indices[0] if idx < len(EVENTS_DATA)]
+
+# --------------------------------------------------------------------
+# GPT-4 Call for Event Insights
+# --------------------------------------------------------------------
+def call_gpt4_for_events(events_list, form_data):
+    """
+    Calls GPT-4 API for event-based AI insights.
+    """
+    prompt = f"""
+    You are an AI procurement assistant. Based on the following events and buyer input, provide:
+    - Score
+    - Reason
+    - Explanation
+    - Match Score
+    - Region
+    - Risks
+    - AI insights (trends, optimizations)
+    
+    Events: {json.dumps(events_list)}
+    Buyer Input: {json.dumps(form_data)}
+
+    Respond in JSON format.
+    """
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": "You are a procurement AI assistant."},
+                  {"role": "user", "content": prompt}],
+        max_tokens=3000
+    )
+    return json.loads(response['choices'][0]['message']['content'])
+    """
+    return [{"EventID": e["EventID"], "score": 85, "reason": "AI-generated insight", "explanation": "Deep learning analysis", 
+             "match_score": 0.87, "region": e.get("Region", "Global"), 
+             "risks": "Moderate risk", "ai_insights": {"trends": ["Increase in demand"], "optimizations": ["Reduce procurement time"]}} 
+            for e in events_list]
+
+# --------------------------------------------------------------------
+# GPT-4 Call for Supplier Quotation Insights
+# --------------------------------------------------------------------
+def call_gpt4_for_suppliers(event_data, supplier_text):
+    """
+    Calls GPT-4 API for supplier quotation insights.
+    """
+    prompt = f"""
+    You are an AI procurement assistant. Based on the following supplier quotations and buyer requirements,
+    provide:
+    - Ranked supplier quotes (price, delivery time, quality, terms).
+    - Explanations for each ranking, highlighting trade-offs.
+    - AI insights including trends, risks, optimizations.
+
+    Buyer Requirements: {json.dumps(event_data)}
+    Supplier Quotations: {supplier_text}
+
+    Respond in JSON format.
+    """
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": "You are a procurement AI assistant."},
+                  {"role": "user", "content": prompt}],
+        max_tokens=3000
+    )
+    return json.loads(response['choices'][0]['message']['content'])
+    """
+    return [{"supplier_name": "Supplier X", "price_per_unit": 1200, "score": 95, 
+             "explanation": "Best price with fastest delivery.", "ai_suggested_percentage": 40}]
+
+# --------------------------------------------------------------------
+# Flask Setup
+# --------------------------------------------------------------------
+@app.before_request
+def init_app():
+    csv_path = "small_tender_system_event_data.csv"
+    build_faiss_index_for_events(csv_path)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/generate_project", methods=["POST"])
+def generate_project():
+    form_data = request.form.to_dict()
+    commodity = form_data.get("commodity", "").strip()
+    matched_events = faiss_search_events(commodity, top_k=50)
+
+    # Call GPT-4 to get AI insights for events
+    ai_event_insights = call_gpt4_for_events(matched_events, form_data)
+    
+    for evt, ai_insight in zip(matched_events, ai_event_insights):
+        evt["ai_data"] = ai_insight
+
+    matched_events.sort(key=lambda x: x["ai_data"]["score"], reverse=True)
+
+    global_insights = call_gpt4_for_events([], form_data)
+
+    return render_template(
+        "compareEvents.html",
+        events=matched_events,
+        global_insights=global_insights,
+        form_data=form_data
+    )
+
+@app.route("/compare_quotes/<event_id>")
+def compare_quotes(event_id):
+    supplier_text = "supplier_quotations.txt"
+    try:
+        with open(supplier_text, 'r', encoding='utf-8') as f:
+            supplier_data = f.read()
+    except Exception as e:
+        print("Error loading supplier quotations:", e)
+        supplier_data = ""
+
+    ai_supplier_insights = call_gpt4_for_suppliers({}, supplier_data)
+
+    return render_template(
+        "compare_quotes.html",
+        event_id=event_id,
+        supplier_insights_list=ai_supplier_insights
+    )
+
+@app.route("/award", methods=["POST"])
+def award():
+    selected_suppliers = request.form.getlist("selected_suppliers")
+    return render_template("award_result.html", awarded_suppliers=selected_suppliers)
+
+if __name__ == "__main__":
+    app.run(debug=True)
